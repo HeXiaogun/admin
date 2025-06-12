@@ -22,6 +22,21 @@ const AddModalForm = (props: Props) => {
     return Promise.resolve();
   };
 
+  //邮箱校验
+const validatorEmail = (_: any, value: string) => {
+  if (!value) {
+    return Promise.reject(new Error("邮箱不能为空"));
+  }
+
+  const reg_email = /^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/;
+  if (!reg_email.test(value)) {
+    return Promise.reject(new Error("请输入正确的邮箱"));
+  }
+  
+  // 添加成功返回
+  return Promise.resolve();
+};
+
   /**
    * 提交表单
    * @param values
@@ -74,7 +89,15 @@ const AddModalForm = (props: Props) => {
             { value: 1, label: "男" },
             { value: 2, label: "女" },
           ]}
+          
         />
+      </Form.Item>
+      <Form.Item
+        label="邮箱"
+        name="email"
+        rules={[{ required: true, validator: validatorEmail }]}
+      >
+        <Input />
       </Form.Item>
 
       <Form.Item label="手机号" name="phone" rules={[{ required: true, validator: validatorPhone }]}>

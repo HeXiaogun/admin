@@ -9,7 +9,6 @@ import { useRef, useState } from "react";
 import AddModalForm from "./components/AddModalForm";
 import EditModalForm from "./components/EditModalForm";
 
-// 格式化日期为 YYYY-MM-DD HH:mm:ss
 const formatDate = (date: Date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -20,33 +19,39 @@ const formatDate = (date: Date) => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
 
-// 初始用户数据
 const initialAddressData = [
   {
     id: "1",
     name: "张三",
-    age: 25,
+
     gender: 1,
     phone: "13812345678",
+    email: "27468002156@qq.com",
     role: 1,
+    createTime: "2023-01-01 00:00:00",
+    updateTime: "2023-01-02 00:00:00",
   },
   {
     id: "2",
     name: "李四",
-    age: 30,
+
     gender: 2,
     phone: "13987654321",
+    email: "27468002156@qq.com",
     role: 2,
-
+    createTime: "2023-01-01 00:00:00",
+    updateTime: "2023-01-02 00:00:00",
   },
   {
     id: "3",
     name: "王五",
-    age: 28,
+
     gender: 1,
     phone: "13712349876",
+    email: "27468002156@qq.com",
     role: 1,
-  
+    createTime: "2023-01-01 00:00:00",
+    updateTime: "2023-01-02 00:00:00",
   },
 ];
 
@@ -54,12 +59,12 @@ const User = () => {
   const actionRef = useRef<ActionType>();
   const [userData, setUserData] = useState(initialAddressData);
 
-  //表格的列
   const columns: ProColumns<any>[] = [
     {
       title: "ID",
       dataIndex: "id",
       key: "id",
+      hideInSearch: true,
     },
     {
       title: "名称",
@@ -71,24 +76,46 @@ const User = () => {
       dataIndex: "gender",
       key: "gender",
       render: (gender: number) => (gender === 1 ? "男" : "女"),
+      // 添加搜索表单配置
+      valueType: "select",
+      valueEnum: {
+        1: { text: "男" },
+        2: { text: "女" },
+      },
     },
     {
       title: "手机号",
       dataIndex: "phone",
       key: "phone",
     },
-    { 
+    {
       title: "邮箱",
-       dataIndex: "email",
-        key: "email" 
-      },
+      dataIndex: "email",
+      key: "email",
+    },
     {
       title: "角色",
       dataIndex: "role",
       key: "role",
       render: (role: number) => (role === 1 ? "普通用户" : "管理员"),
+      valueType: "select",
+      valueEnum: {
+        1: { text: "普通用户" },
+        2: { text: "管理员" },
+      },
     },
-   
+    {
+      title: "创建时间",
+      dataIndex: "createTime",
+      key: "createTime",
+      hideInSearch: true,
+    },
+    {
+      title: "更新时间",
+      dataIndex: "updateTime",
+      key: "updateTime",
+      hideInSearch: true,
+    },
     {
       title: "操作",
       dataIndex: "action",
@@ -96,38 +123,50 @@ const User = () => {
       fixed: "right",
       width: 300,
       search: false,
-      render: (_, record: any) => {
-        return (
-          <Space>
-            <Button
-              type={"primary"}
-              danger
-              onClick={() => handleDeAddress(record)}
-            >
-              删除
-            </Button>
-            <EditModalForm
-              values={record}
-              onSuccess={() => actionRef.current?.reload()}
-            ></EditModalForm>
-          </Space>
-        );
-      },
+      render: (_, record: any) => (
+        <Space>
+          <Button type={"primary"} danger onClick={() => handleDelUser(record)}>
+            删除
+          </Button>
+          <EditModalForm
+            values={record}
+            onUpdate={handleUpdateUser}
+            onSuccess={() => actionRef.current?.reload()}
+          />
+        </Space>
+      ),
     },
   ];
 
-  /**
-   * 分页查询
-   * @param params
-   * @returns
-   */
   const handlePage = async (params: Record<string, any>) => {
     try {
+      const { current = 1, pageSize = 10, ...searchParams } = params;
+
+      let filteredData = [...userData];
+
+      Object.keys(searchParams).forEach((key) => {
+        const value = searchParams[key];
+        if (value !== undefined && value !== null && value !== "") {
+          filteredData = filteredData.filter((item) => {
+            if (key === "gender" || key === "role") {
+              return item[key] === Number(value);
+            }
+            const itemValue = String(item[key] || "").toLowerCase();
+            return itemValue.includes(String(value).toLowerCase());
+          });
+        }
+      });
+
+      // 分页
+      const startIndex = (current - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const pageData = filteredData.slice(startIndex, endIndex);
+
       await new Promise((resolve) => setTimeout(resolve, 300));
       return {
-        data: userData,
+        data: pageData,
         success: true,
-        total: userData.length,
+        total: filteredData.length,
       };
     } catch (error: any) {
       message.error(error.msg);
@@ -139,7 +178,7 @@ const User = () => {
     }
   };
 
-  const handleDeAddress = async (item: any) => {
+  const handleDelUser = async (item: any) => {
     Modal.confirm({
       title: "你真的要删除这条数据吗？",
       icon: <ExclamationCircleFilled />,
@@ -167,6 +206,12 @@ const User = () => {
     setUserData((prev) => [...prev, newUser]);
     message.success("用户添加成功");
     actionRef.current?.reload();
+  };
+  //修改用户
+  const handleUpdateUser = (updatedUser: any) => {
+    setUserData((prevData) =>
+      prevData.map((user) => (user.id === updatedUser.id ? updatedUser : user))
+    );
   };
 
   return (
