@@ -1,0 +1,8 @@
+.bottom-wave {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%; /* 恢复正常宽度 */
+  height: auto; /* 自动高度 */
+  z-index: -1; /* 确保波浪在背景层 */
+}

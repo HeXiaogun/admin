@@ -1,0 +1,46 @@
+.header {
+  margin-left: 10px;
+
+  .headerBtn {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-left: 10px;
+    div {
+      display: flex;
+      gap: 10px;
+    }
+  }
+
+  .headerSearch {
+    font-size: 15px;
+    margin-bottom: 20px;
+
+    .searchCondition {
+      display: flex;
+      gap: 10px;
+      .searchItem {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 400px;
+        span {
+          width: 100px;
+        }
+        :global {
+          .ant-input {
+            height: 40px;
+          }
+        }
+      }
+    }
+
+    .searchDate {
+      margin-top: 10px;
+      margin-left: 10px;
+      display: flex;
+      height: 40px;
+      width: 900px;
+    }
+  }
+}
