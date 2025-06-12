@@ -1,72 +1,93 @@
-import { Button, Form, Input, message } from "antd";
-import { ModalForm } from "@ant-design/pro-components";
+import { Modal, Form, Input, message, Button } from "antd";
+import { useState, useEffect } from "react";
 
-type Props = {
-  onSuccess?: () => void;
-};
+interface Props {
+  values: any;
+  onSuccess: () => void;
+  onSubmit: (values: any) => boolean;
+}
 
-const EditModalForm = (props: Props) => {
-  const { onSuccess, values } = props;
+const EditModalForm = ({ values, onSuccess, onSubmit }: Props) => {
+  const [form] = Form.useForm();
+  const [visible, setVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  /**
-   * 提交表单
-   * @param values
-   */
-  const handleFinish = async (values: Record<string, any>) => {
+  useEffect(() => {
+    if (visible && values) {
+      form.setFieldsValue(values);
+    }
+  }, [visible, values, form]);
+
+  const handleSubmit = async () => {
     try {
-      console.log("表单提交的值:", values); // 打印提交的表单值
-      message.success("添加成功");
-      onSuccess?.();
-      return true;
-    } catch (e: any) {
-      message.error(e.msg || e.message);
+      setLoading(true);
+      const formValues = await form.validateFields();
+      const success = onSubmit({ ...values, ...formValues });
+      
+      if (success) {
+        message.success("更新成功");
+        setVisible(false);
+        onSuccess();
+      }
+    } catch (error) {
+      message.error("更新失败，请检查输入");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <ModalForm
-      layout={"horizontal"}
-      labelCol={{ span: 3 }}
-      title="新增地址"
-      trigger={<Button type="primary">新增地址</Button>}
-      modalProps={{
-        destroyOnClose: true,
-      }}
-      onFinish={handleFinish}
-      initialValues={values}
-    >
-      <Form.Item
-        label="地址名称"
-        name="addressName"
-        rules={[{ required: true, message: "请填写地址名称，最大字符长度为50！", max: 50 }]}
+    <>
+      <Button type="primary" onClick={() => setVisible(true)}>
+        编辑
+      </Button>
+      
+      <Modal
+        title="编辑地址"
+        open={visible}
+        onOk={handleSubmit}
+        onCancel={() => setVisible(false)}
+        confirmLoading={loading}
       >
-        <Input />
-      </Form.Item>
-
-      <Form.Item label="详细地址" name="detailedAddress" rules={[{ required: true, message: "请填写详细地址！" }]}>
-        <Input />
-      </Form.Item>
-
-      <Form.Item
-        label="邮政编码"
-        name="postalCode"
-        rules={[{ required: true, message: "请填写正确的邮政编码！", pattern: /^[0-9]{6}$/ }]}
-      >
-        <Input />
-      </Form.Item>
-
-      <Form.Item label="联系人" name="contactPerson" rules={[{ required: true, message: "请填写联系人姓名！" }]}>
-        <Input />
-      </Form.Item>
-
-      <Form.Item
-        label="联系电话"
-        name="contactPhone"
-        rules={[{ required: true, message: "请填写正确的联系电话！", pattern: /^1[3-9]\d{9}$/ }]}
-      >
-        <Input />
-      </Form.Item>
-    </ModalForm>
+        <Form form={form} layout="vertical" initialValues={values}>
+          <Form.Item 
+            name="addressName" 
+            label="地址名称" 
+            rules={[{ required: true, message: '请输入地址名称' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item 
+            name="detailedAddress" 
+            label="详细地址"
+            rules={[{ required: true, message: '请输入详细地址' }]}
+          >
+            <Input.TextArea />
+          </Form.Item>
+          <Form.Item 
+            name="postalCode" 
+            label="邮政编码"
+            rules={[{ required: true, message: '请输入邮政编码' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item 
+            name="contactPerson" 
+            label="联系人"
+            rules={[{ required: true, message: '请输入联系人姓名' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item 
+            name="contactPhone" 
+            label="联系电话"
+            rules={[{ required: true, message: '请输入联系电话' }]}
+          >
+            <Input />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </>
   );
 };
 
